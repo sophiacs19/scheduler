@@ -20,7 +20,7 @@ function getIncompleteTasksFromPreviousMonth(currentDate) {
 }
 
 async function getEvents() {
-    const response = await fetch('/events');
+    const response = await fetch('/events/all');
     if (!response.ok) {
         throw new Error('Failed to fetch events');
     }
@@ -28,17 +28,22 @@ async function getEvents() {
     const events = await response.json();
     console.log('events list here:', events);
     events.forEach(e => {
+        const id = e[0];
         const dateKey = e[3];
         const text = e[1];
         const startTime = e[4];
         const endTime = e[5];
-        const eventObj = { type: "event", text, startTime, endTime };
+        const eventObj = { id, type: "event", text, startTime, endTime };
         tasksAndEvents[dateKey] = tasksAndEvents[dateKey] || { tasks: [], events: [] };
         tasksAndEvents[dateKey].events.push(eventObj);
-    });
-    
+    });    
     renderCalendar(currentDate);
+}
 
+async function deleteEvent(eventId) {
+    const response = await fetch(`/events/${eventId}`, {
+        method: 'DELETE'
+    });
 }
 
 function renderCalendar(date) {
@@ -351,6 +356,8 @@ function openEditItemOverlay(dateString, item) {
         tasksAndEvents[dateString][item.type === "task" ? "tasks" : "events"].splice(index, 1);
         renderCalendar(currentDate);
         overlay.remove();
+
+        deleteEvent(item.id);
     });
     overlay.appendChild(deleteButton);
 

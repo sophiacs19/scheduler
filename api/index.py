@@ -10,9 +10,20 @@ app = Flask(__name__)
 def index():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'calendar.html')
 
-@app.route('/events')
+@app.route('/events/all')
 def getAllEvents():
     return db_query("SELECT * FROM events")
+
+
+@app.route('/events/<int:event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    sql = f'delete from events where id = {event_id}'
+    deleteCount = db_exec(sql)
+    if deleteCount != 1:
+        return jsonify({"message": "Event deleted successfully!"}), 200
+    else:
+        return jsonify({"message": deleteCount + " task deleted!"}), 404
+
 
 
 # Database connection details
@@ -23,6 +34,22 @@ DB_CONFIG = {
     'host': 'ep-old-bush-a5chll5l-pooler.us-east-2.aws.neon.tech',  
     'port': '5432',       # Default PostgreSQL port
 }
+
+def db_exec(sql):
+    try:
+        connection = psycopg2.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        connection.commit()
+    
+    except psycopg2.Error as e:
+        print(f"Error connecting to the database: {e}")
+    finally:
+        # Close the database connection
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
 
 def db_query(sql):
     try:
