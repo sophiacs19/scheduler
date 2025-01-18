@@ -28,13 +28,20 @@ async function getEvents() {
     const events = await response.json();
     console.log('events list here:', events);
     events.forEach(e => {
-        
+        const dateKey = e[3];
+        const text = e[1];
+        const startTime = e[4];
+        const endTime = e[5];
+        const eventObj = { type: "event", text, startTime, endTime };
+        tasksAndEvents[dateKey] = tasksAndEvents[dateKey] || { tasks: [], events: [] };
+        tasksAndEvents[dateKey].events.push(eventObj);
     });
+    
+    renderCalendar(currentDate);
+
 }
 
 function renderCalendar(date) {
-
-    getEvents();    
 
     const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
     const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -226,18 +233,21 @@ function showEventInput(overlay, date, day) {
     descriptionInput.placeholder = "Event description";
     inputGroup.appendChild(descriptionInput);
 
-    const timeInput = document.createElement("input");
-    timeInput.placeholder = "HH:MM - HH:MM (optional)";
-    inputGroup.appendChild(timeInput);
+    //<input type="time" id="appt" name="appt">
+    const timePanel = document.createElement("div");
+    timePanel.innerHTML = 'Start time: <input type="time" id="startTime"/> End time: <input type="time" id="endTime"/>';
+    inputGroup.appendChild(timePanel);
 
     const addButton = document.createElement("button");
     addButton.textContent = "Add Event";
     addButton.addEventListener("click", () => {
         const text = descriptionInput.value.trim();
-        const time = timeInput.value.trim();
+        // const time = timeInput.value.trim();
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;        
         if (text) {
             tasksAndEvents[dateString] = tasksAndEvents[dateString] || { tasks: [], events: [] };
-            tasksAndEvents[dateString].events.push({ type: "event", text, time: time || null });
+            tasksAndEvents[dateString].events.push({ type: "event", text, startTime, endTime });
             renderCalendar(currentDate);
             overlay.remove();
         }
@@ -304,10 +314,14 @@ function openEditItemOverlay(dateString, item) {
     overlay.appendChild(input);
 
     if (item.type === "event") {
-        const timeInput = document.createElement("input");
-        timeInput.placeholder = "HH:MM - HH:MM";
-        timeInput.value = item.time || "";
-        overlay.appendChild(timeInput);
+        // const timeInput = document.createElement("input");
+        // timeInput.placeholder = "HH:MM - HH:MM";
+        // timeInput.value = item.time || "";
+        // overlay.appendChild(timeInput);
+
+        const timePanel = document.createElement("div");
+        timePanel.innerHTML = `Start time: <input type="time" value="${item.startTime}" id="startTime"/> End time: <input type="time" value="${item.endTime}" id="endTime"/>`;
+        overlay.appendChild(timePanel);
 
         const saveButton = document.createElement("button");
         saveButton.textContent = "Save";
@@ -355,4 +369,4 @@ document.getElementById("nextMonth").addEventListener("click", () => {
 });
 
 // Initial Render
-renderCalendar(currentDate);
+getEvents();    

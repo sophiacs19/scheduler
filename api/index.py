@@ -34,10 +34,10 @@ def db_query(sql):
         cursor.execute(sql)
 
         # Fetch all rows from the result
-        users = cursor.fetchall()
+        resultList = cursor.fetchall()
 
         # return the result
-        return users
+        return jsonify(resultList)
     
     except psycopg2.Error as e:
         print(f"Error connecting to the database: {e}")
