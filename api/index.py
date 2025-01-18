@@ -19,11 +19,20 @@ def getAllEvents():
 def delete_event(event_id):
     sql = f'delete from events where id = {event_id}'
     deleteCount = db_exec(sql)
-    if deleteCount != 1:
+    if deleteCount == 1:
         return jsonify({"message": "Event deleted successfully!"}), 200
     else:
-        return jsonify({"message": deleteCount + " task deleted!"}), 404
+        return jsonify({"message": deleteCount + " event deleted!"}), 404
 
+@app.route('/events/add/<dateKey>', methods=['POST'])
+def add_event(dateKey):
+    eventItem = request.get_json()
+    sql = 'INSERT INTO events (title, user_id, date, start_time, end_time) VALUES (%s, %s, %s, %s, %s)'
+    affected = db_exec(sql, (eventItem['text'], 1, dateKey, eventItem['startTime'], eventItem['endTime']))
+    if affected == 1:
+        return jsonify({ "message": "1 Event added successfully!" }), 200
+    else:
+        return jsonify({ "message": f'{affected} event added!' }), 404
 
 
 # Database connection details
@@ -35,11 +44,11 @@ DB_CONFIG = {
     'port': '5432',       # Default PostgreSQL port
 }
 
-def db_exec(sql):
+def db_exec(sql, values=None):
     try:
         connection = psycopg2.connect(**DB_CONFIG)
         cursor = connection.cursor()
-        cursor.execute(sql)
+        cursor.execute(sql, values)
         connection.commit()
     
     except psycopg2.Error as e:

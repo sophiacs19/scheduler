@@ -252,10 +252,21 @@ function showEventInput(overlay, date, day) {
         const endTime = document.getElementById('endTime').value;        
         if (text) {
             tasksAndEvents[dateString] = tasksAndEvents[dateString] || { tasks: [], events: [] };
-            tasksAndEvents[dateString].events.push({ type: "event", text, startTime, endTime });
+            const eventItem = { type: "event", text, startTime, endTime };
+            tasksAndEvents[dateString].events.push(eventItem);
             renderCalendar(currentDate);
             overlay.remove();
+
+            const apiUrl = `/events/add/${dateString}`;
+            fetch(apiUrl, {
+                method: 'POST', // Specify the HTTP method
+                headers: {
+                    'Content-Type': 'application/json', // Set the content type to JSON
+                },
+                body: JSON.stringify(eventItem), // Convert the eventDetails object to JSON
+            })
         }
+
     });
 
     inputGroup.appendChild(addButton);
