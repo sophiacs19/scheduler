@@ -1,0 +1,201 @@
+/* General styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  display: flex;
+  height: 100vh;
+}
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 23px;
+  background-color: #383838;
+  color: #fff;
+}
+
+.days-of-week,
+.dates {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.days-of-week div {
+  font-weight: bold;
+  background-color: #797979;
+  color: #fff;
+  padding: 10px;
+}
+
+/* Date block styles */
+.date-block {
+  border: 1px solid #ccc;
+  padding: 42px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.date-number {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-weight: bold;
+  font-size: 16px;
+  background-color: transparent;
+}
+
+.current-date .date-number {
+  background-color: rgb(255, 192, 203);
+  border-radius: 50%;
+  padding: 5px;
+}
+
+.task-item,
+.event-item {
+  font-size: 12px;
+  color: white;
+  padding: 5px; /* Reduce padding to make more room for content */
+  margin: 5px 0; /* Vertical spacing between blocks */
+  text-align: left; /* Align text to the left */
+  width: 100%; /* Make the width of the block match the parent */
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box; /* Include padding in width calculations */
+}
+
+.task-item {
+  background-color: rgb(161, 213, 255);
+}
+
+.event-item {
+  background-color: rgb(222, 161, 233);
+}
+
+
+input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+input[type="checkbox"]:checked + span {
+  text-decoration: line-through;
+}
+
+/* Enable draggable behavior */
+.task-item, .event-item {
+  cursor: move;
+}
+
+/* Overlay styles */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  z-index: 1000;
+  overflow: auto;
+  padding: 20px;
+}
+
+.overlay h3 {
+  margin-top: 0;
+}
+
+.close-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgb(0, 0, 0);
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.button-group button {
+  background-color: #555;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.button-group button:hover {
+  background-color: #777;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+.input-group label {
+  margin-bottom: 5px;
+}
+
+.input-group input {
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.more-button {
+  background: rgb(255, 192, 203);
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  font-size: 10px;
+  margin-top: 5px;
+  border-radius: 5px;
+}
+
+.more-button:hover {
+  background: rgb(216, 124, 140);
+}
+
+.event-time {
+  font-size: 10px;
+  color: #eee;
+  margin-top: 5px;
+}
+
+.incomplete-block {
+  background-color: rgb(255, 192, 203);
+  color: black;
+  padding: 5px;
+  border-radius: 5px;
+  margin-top: 5px;
+  font-size: 12px;
+  text-align: center;
+}

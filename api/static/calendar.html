@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Calendar</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="calendar">
+        <header>
+            <button id="prevMonth">&lt;</button>
+            <h1 id="monthYear"></h1>
+            <button id="nextMonth">&gt;</button>
+        </header>
+        <div class="days-of-week">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+        </div>
+        <div id="dates" class="dates"></div>
+    </div>
+    <div id="overlays"></div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
