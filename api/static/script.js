@@ -19,6 +19,12 @@ function getIncompleteTasksFromPreviousMonth(currentDate) {
     return incompleteCount;
 }
 
+async function populate() {
+    tasksAndEvents = {};
+    await getEvents()
+    renderCalendar(currentDate);
+}
+
 async function getEvents() {
     const response = await fetch('/events/all');
     if (!response.ok) {
@@ -37,13 +43,14 @@ async function getEvents() {
         tasksAndEvents[dateKey] = tasksAndEvents[dateKey] || { tasks: [], events: [] };
         tasksAndEvents[dateKey].events.push(eventObj);
     });    
-    renderCalendar(currentDate);
+    
 }
 
 async function deleteEvent(eventId) {
     const response = await fetch(`/events/${eventId}`, {
         method: 'DELETE'
     });
+    populate();
 }
 
 function renderCalendar(date) {
@@ -264,7 +271,8 @@ function showEventInput(overlay, date, day) {
                     'Content-Type': 'application/json', // Set the content type to JSON
                 },
                 body: JSON.stringify(eventItem), // Convert the eventDetails object to JSON
-            })
+            }).then(rs => populate() );                 
+
         }
 
     });
@@ -343,8 +351,18 @@ function openEditItemOverlay(dateString, item) {
         saveButton.textContent = "Save";
         saveButton.addEventListener("click", () => {
             item.text = input.value.trim();
-            item.time = timeInput.value.trim();
-            renderCalendar(currentDate);
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            item.startTime = startTime;
+            item.endTime = endTime;
+            const apiUrl = `/events/update`;
+            fetch(apiUrl, {
+                method: 'POST', // Specify the HTTP method
+                headers: {
+                    'Content-Type': 'application/json', // Set the content type to JSON
+                },
+                body: JSON.stringify(item), // Convert the eventDetails object to JSON
+            }).then(rs => populate() );                 
             overlay.remove();
         });
         overlay.appendChild(saveButton);
@@ -387,4 +405,4 @@ document.getElementById("nextMonth").addEventListener("click", () => {
 });
 
 // Initial Render
-getEvents();    
+populate();    

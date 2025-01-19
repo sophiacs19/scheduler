@@ -22,7 +22,7 @@ def delete_event(event_id):
     if deleteCount == 1:
         return jsonify({"message": "Event deleted successfully!"}), 200
     else:
-        return jsonify({"message": deleteCount + " event deleted!"}), 404
+        return jsonify({"message": f'{deleteCount} event deleted!'}), 404
 
 @app.route('/events/add/<dateKey>', methods=['POST'])
 def add_event(dateKey):
@@ -33,6 +33,22 @@ def add_event(dateKey):
         return jsonify({ "message": "1 Event added successfully!" }), 200
     else:
         return jsonify({ "message": f'{affected} event added!' }), 404
+
+
+@app.route('/events/update', methods=['POST'])
+def update_event():
+    eventItem = request.get_json()
+    sql = """
+        UPDATE events
+        SET title = %s, start_time = %s, end_time = %s
+        WHERE id = %s
+        """
+    # { id: 1, type: "event", text, startTime, endTime }
+    affected = db_exec(sql, (eventItem['text'], eventItem['startTime'], eventItem['endTime'], eventItem['id']))
+    if affected == 1:
+        return jsonify({ "message": "1 Event updated successfully!" }), 200
+    else:
+        return jsonify({ "message": f'{affected} event updated!' }), 404
 
 
 # Database connection details
@@ -50,6 +66,7 @@ def db_exec(sql, values=None):
         cursor = connection.cursor()
         cursor.execute(sql, values)
         connection.commit()
+        return cursor.rowcount
     
     except psycopg2.Error as e:
         print(f"Error connecting to the database: {e}")
@@ -85,27 +102,7 @@ def db_query(sql):
             connection.close()
 
 
-@app.route('/events/<int:event_id>', methods=['PUT'])
-def update_event(event_id):
-    event = Event.query.get_or_404(event_id)
-    data = request.get_json()
-    
-    event.date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-    event.time = datetime.strptime(data['time'], '%H:%M').time() if 'time' in data else None
-    event.title = data['title']
-    
-    db.session.commit()
-    
-    return jsonify({"message": "Event updated successfully!"}), 200
 
-
-@app.route('/tasks/<int:task_id>', methods=['DELETE'])
-def delete_task(task_id):
-    task = Task.query.get_or_404(task_id)
-    db.session.delete(task)
-    db.session.commit()
-    
-    return jsonify({"message": "Task deleted successfully!"}), 200
 
 
 
