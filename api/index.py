@@ -34,7 +34,6 @@ def add_event(dateKey):
     else:
         return jsonify({ "message": f'{affected} event added!' }), 404
 
-
 @app.route('/events/update', methods=['POST'])
 def update_event():
     eventItem = request.get_json()
@@ -49,6 +48,73 @@ def update_event():
         return jsonify({ "message": "1 Event updated successfully!" }), 200
     else:
         return jsonify({ "message": f'{affected} event updated!' }), 404
+
+
+@app.route('/tasks/all')
+def getAllTasks():
+    sql = "SELECT * FROM tasks"
+    tasks = db_query(sql)
+    print("Fetched tasks:", tasks)  # Debug log
+    return tasks
+
+@app.route('/tasks/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    sql = f'delete from tasks where id = {task_id}'
+    deleteCount = db_exec(sql)
+    if deleteCount == 1:
+        return jsonify({"message": "Task deleted successfully!"}), 200
+    else:
+        return jsonify({"message": f'{deleteCount} task deleted!'}), 404
+
+@app.route('/tasks/add/<dateKey>', methods=['POST'])
+def add_task(dateKey):
+    taskItem = request.get_json()
+    sql = 'INSERT INTO tasks (title, user_id, date, done, order) VALUES (%s, %s, %s, %s, %s)'
+    affected = db_exec(sql, (taskItem['text'], 1, dateKey, taskItem['done'], taskItem['order']))
+    if affected == 1:
+        return jsonify({ "message": "1 task added successfully!" }), 200
+    else:
+        return jsonify({ "message": f'{affected} task added!' }), 404
+
+@app.route('/tasks/update', methods=['POST'])
+def update_task():
+    taskItem = request.get_json()
+    # sql = 'UPDATE tasks SET title = %s, "order" = 2, done = %s WHERE id = %s'
+    sql = 'UPDATE tasks SET title = %s, done = %s, "order" = %s WHERE id = %s'
+    # sql = "UPDATE tasks SET title = %s, done = %s WHERE id = %s"
+ 
+    affected = db_exec(sql, (taskItem['text'], taskItem['done'], taskItem['order'], taskItem['id']))
+    # affected = db_exec(sql, (taskItem['text'], taskItem['done'], taskItem['id']))
+    if affected == 1:
+        return jsonify({ "message": "1 task updated successfully!" }), 200
+    else:
+        return jsonify({ "message": f'{affected} task updated!' }), 404
+
+@app.route('/tasks/update_order', methods=['POST'])
+def update_task_order():
+    task_orders = request.get_json()
+    try:
+        connection = psycopg2.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        
+        # Update the order of each task
+        for task_id, new_order in task_orders.items():
+            sql = "UPDATE tasks SET \"order\" = %s WHERE id = %s"
+            cursor.execute(sql, (new_order, task_id))
+        
+        connection.commit()
+        return jsonify({"message": "Task order updated successfully!"}), 200
+
+    except psycopg2.Error as e:
+        print(f"Error updating task order: {e}")
+        return jsonify({"error": "Failed to update task order"}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
 
 
 # Database connection details

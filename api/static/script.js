@@ -22,6 +22,7 @@ function getIncompleteTasksFromPreviousMonth(currentDate) {
 async function populate() {
     tasksAndEvents = {};
     await getEvents()
+    await getTasks()
     renderCalendar(currentDate);
 }
 
@@ -48,6 +49,101 @@ async function getEvents() {
 
 async function deleteEvent(eventId) {
     const response = await fetch(`/events/${eventId}`, {
+        method: 'DELETE'
+    });
+    populate();
+}
+
+async function getTasks() {
+    const response = await fetch('/tasks/all');
+    if (!response.ok) {
+        throw new Error('Failed to fetch tasks');
+    }
+
+    const tasks = await response.json();
+    console.log('Fetched tasks:', tasks);
+    tasks.forEach(t => { 
+        const id = t[0];
+        const dateKey = t[3]; 
+        const text = t[1];
+        const done = t[4];
+        const order = t[5];
+        const taskObj = { id, type: "task", text, done, order };
+        tasksAndEvents[dateKey] = tasksAndEvents[dateKey] || { tasks: [], events: [] };
+        tasksAndEvents[dateKey].tasks.push(taskObj); 
+    });
+}
+
+   
+async function updateTaskOrder(updatedOrders) {
+    const response = await fetch('/tasks/update_order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedOrders),
+    });
+
+    if (!response.ok) {
+        console.error('Failed to update task order:', response.statusText);
+        throw new Error('Failed to update task order');
+    }
+    console.log('Task order updated successfully');
+}
+
+function handleTaskDragAndDrop(tasks) {
+    const taskContainer = document.querySelector('.task-container'); // Assuming all tasks are in a container
+
+    // Add drag-and-drop event listeners
+    taskContainer.addEventListener('dragstart', (e) => {
+        e.target.classList.add('dragging');
+    });
+
+    taskContainer.addEventListener('dragend', (e) => {
+        e.target.classList.remove('dragging');
+        
+        // Calculate and save new task order
+        const updatedOrders = {};
+        const taskElements = Array.from(taskContainer.querySelectorAll('.task-item'));
+
+        taskElements.forEach((taskElement, index) => {
+            const taskId = taskElement.dataset.taskId;
+            const newOrder = index + 1;
+            updatedOrders[taskId] = newOrder;
+        });
+
+        // Save new order in the database
+        updateTaskOrder(updatedOrders).then(() => populate());
+    });
+
+    taskContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const draggingTask = document.querySelector('.dragging');
+        const closestTask = getClosestTask(taskContainer, e.clientY);
+        
+        if (closestTask) {
+            taskContainer.insertBefore(draggingTask, closestTask);
+        }
+    });
+
+    function getClosestTask(container, y) {
+        const tasks = Array.from(container.querySelectorAll('.task-item:not(.dragging)'));
+        return tasks.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset, element: child };
+            }
+            return closest;
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+}
+
+// const prevOrder = parseFloat(previousTask.order);
+// const nextOrder = parseFloat(nextTask.order);
+// const newOrder = (prevOrder + nextOrder) / 2;
+
+
+async function deleteTask(taskId) {
+    const response = await fetch(`/tasks/${taskId}`, {
         method: 'DELETE'
     });
     populate();
@@ -372,6 +468,14 @@ function openEditItemOverlay(dateString, item) {
         saveButton.addEventListener("click", () => {
             item.text = input.value.trim();
             renderCalendar(currentDate);
+            const apiUrl = `/tasks/update`;
+            fetch(apiUrl, {
+                method: 'POST', // Specify the HTTP method
+                headers: {
+                    'Content-Type': 'application/json', // Set the content type to JSON
+                },
+                body: JSON.stringify(item), // Convert the eventDetails object to JSON
+            }).then(rs => populate() );   
             overlay.remove();
         });
         overlay.appendChild(saveButton);
@@ -385,8 +489,11 @@ function openEditItemOverlay(dateString, item) {
         tasksAndEvents[dateString][item.type === "task" ? "tasks" : "events"].splice(index, 1);
         renderCalendar(currentDate);
         overlay.remove();
-
-        deleteEvent(item.id);
+        if(item.type === "task") {
+            deleteTask(item.id);
+        } else {
+            deleteEvent(item.id);
+        }
     });
     overlay.appendChild(deleteButton);
 
