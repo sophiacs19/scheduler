@@ -12,7 +12,7 @@ function getIncompleteTasksFromPreviousMonth(currentDate) {
     let incompleteCount = 0;
     for (let day = 1; day <= daysInPreviousMonth; day++) {
         const dateString = `${previousMonth.getFullYear()}-${previousMonth.getMonth()}-${day}`;
-        const tasks = (tasksAndEvents[dateString]?.tasks || []).filter(task => !task.completed);
+        const tasks = (tasksAndEvents[dateString]?.tasks || []).filter(task => !task.done);
         incompleteCount += tasks.length;
     }
 
@@ -200,9 +200,10 @@ function renderCalendar(date) {
                 const checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 
-                checkbox.checked = item.completed || false; // Update based on completion status
+                checkbox.checked = item.done || false; // Update based on completion status
                 checkbox.addEventListener("click", (e) => {
                     e.stopPropagation();
+                    item.done = checkbox.checked
                     toggleTaskCompletion(item, checkbox);
                 });
         
@@ -251,6 +252,14 @@ function toggleTaskCompletion(item, checkbox) {
     } else {
         textElement.style.textDecoration = "none";
     }
+    const apiUrl = `/tasks/update`;
+    fetch(apiUrl, {
+        method: 'POST', // Specify the HTTP method
+        headers: {
+            'Content-Type': 'application/json', // Set the content type to JSON
+        },
+        body: JSON.stringify(item), // Convert the eventDetails object to JSON
+    });  
 }
 
 // Utility function to check if the date is today's date
@@ -312,25 +321,60 @@ function showTaskInput(overlay, date, day) {
     const inputGroup = document.createElement("div");
     inputGroup.className = "input-group";
 
+    // Task description input
     const input = document.createElement("input");
     input.placeholder = "Task description";
     inputGroup.appendChild(input);
 
+    // Checkbox for "done" status
+    const doneLabel = document.createElement("label");
+    doneLabel.textContent = "Done: ";
+
+    const doneCheckbox = document.createElement("input");
+    doneCheckbox.type = "checkbox";
+    doneCheckbox.id = "done";
+    doneLabel.appendChild(doneCheckbox);
+
+    // Create a container for the checkbox
+    const statusContainer = document.createElement("div");
+    statusContainer.appendChild(doneLabel);
+    inputGroup.appendChild(statusContainer);
+
+    // Add Task button
     const addButton = document.createElement("button");
     addButton.textContent = "Add Task";
     addButton.addEventListener("click", () => {
         const text = input.value.trim();
+        const done = doneCheckbox.checked; // Get checked status (true/false)
+
         if (text) {
             tasksAndEvents[dateString] = tasksAndEvents[dateString] || { tasks: [], events: [] };
-            tasksAndEvents[dateString].tasks.push({ type: "task", text });
+
+            // Determine the order value (new task goes at the end with max order + 1)
+            const taskList = tasksAndEvents[dateString].tasks;
+            const maxOrder = taskList.length > 0 ? Math.max(...taskList.map(t => t.order)) : 0;
+            const order = maxOrder + 1; 
+
+            const taskItem = { type: "task", text, done, order };
+            tasksAndEvents[dateString].tasks.push(taskItem); // Store in the correct list
+
             renderCalendar(currentDate);
             overlay.remove();
+
+            // Send data to backend
+            const apiUrl = `/tasks/add/${dateString}`;
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(taskItem),
+            }).then(() => populate());
         }
     });
 
     inputGroup.appendChild(addButton);
     overlay.appendChild(inputGroup);
 }
+
 
 function showEventInput(overlay, date, day) {
     const dateString = `${date.getFullYear()}-${date.getMonth()}-${day}`;

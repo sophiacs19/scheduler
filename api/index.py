@@ -69,7 +69,7 @@ def delete_task(task_id):
 @app.route('/tasks/add/<dateKey>', methods=['POST'])
 def add_task(dateKey):
     taskItem = request.get_json()
-    sql = 'INSERT INTO tasks (title, user_id, date, done, order) VALUES (%s, %s, %s, %s, %s)'
+    sql = 'INSERT INTO tasks (title, user_id, date, done, "order") VALUES (%s, %s, %s, %s, %s)'
     affected = db_exec(sql, (taskItem['text'], 1, dateKey, taskItem['done'], taskItem['order']))
     if affected == 1:
         return jsonify({ "message": "1 task added successfully!" }), 200
