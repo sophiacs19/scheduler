@@ -74,74 +74,6 @@ async function getTasks() {
     });
 }
 
-   
-async function updateTaskOrder(updatedOrders) {
-    const response = await fetch('/tasks/update_order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedOrders),
-    });
-
-    if (!response.ok) {
-        console.error('Failed to update task order:', response.statusText);
-        throw new Error('Failed to update task order');
-    }
-    console.log('Task order updated successfully');
-}
-
-function handleTaskDragAndDrop(tasks) {
-    const taskContainer = document.querySelector('.task-container'); // Assuming all tasks are in a container
-
-    // Add drag-and-drop event listeners
-    taskContainer.addEventListener('dragstart', (e) => {
-        e.target.classList.add('dragging');
-    });
-
-    taskContainer.addEventListener('dragend', (e) => {
-        e.target.classList.remove('dragging');
-        
-        // Calculate and save new task order
-        const updatedOrders = {};
-        const taskElements = Array.from(taskContainer.querySelectorAll('.task-item'));
-
-        taskElements.forEach((taskElement, index) => {
-            const taskId = taskElement.dataset.taskId;
-            const newOrder = index + 1;
-            updatedOrders[taskId] = newOrder;
-        });
-
-        // Save new order in the database
-        updateTaskOrder(updatedOrders).then(() => populate());
-    });
-
-    taskContainer.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        const draggingTask = document.querySelector('.dragging');
-        const closestTask = getClosestTask(taskContainer, e.clientY);
-        
-        if (closestTask) {
-            taskContainer.insertBefore(draggingTask, closestTask);
-        }
-    });
-
-    function getClosestTask(container, y) {
-        const tasks = Array.from(container.querySelectorAll('.task-item:not(.dragging)'));
-        return tasks.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset, element: child };
-            }
-            return closest;
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-}
-
-// const prevOrder = parseFloat(previousTask.order);
-// const nextOrder = parseFloat(nextTask.order);
-// const newOrder = (prevOrder + nextOrder) / 2;
-
-
 async function deleteTask(taskId) {
     const response = await fetch(`/tasks/${taskId}`, {
         method: 'DELETE'
@@ -268,21 +200,6 @@ function isToday(year, month, day) {
     return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
 }
 
-function dragStart(event, itemDiv) {
-    event.dataTransfer.setData("text", itemDiv.textContent);
-    event.dataTransfer.setData("index", itemDiv.dataset.index);
-}
-
-function dragOver(event) {
-    event.preventDefault();
-}
-
-function drop(event, itemDiv) {
-    event.preventDefault();
-    const index = event.dataTransfer.getData("index");
-    // Handle drop logic for rearranging tasks here
-    console.log("Dropped item index:", index);
-}
 
 // Open overlay to add task or event
 function openAddOverlay(date, day) {
