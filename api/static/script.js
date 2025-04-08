@@ -186,22 +186,20 @@ function toggleTaskCompletion(item, checkbox) {
     }
     const apiUrl = `/tasks/update`;
     fetch(apiUrl, {
-        method: 'POST', // Specify the HTTP method
+        method: 'POST', 
         headers: {
-            'Content-Type': 'application/json', // Set the content type to JSON
+            'Content-Type': 'application/json', 
         },
-        body: JSON.stringify(item), // Convert the eventDetails object to JSON
+        body: JSON.stringify(item), 
     });  
 }
 
-// Utility function to check if the date is today's date
 function isToday(year, month, day) {
     const today = new Date();
     return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
 }
 
 
-// Open overlay to add task or event
 function openAddOverlay(date, day) {
     const overlay = document.createElement("div");
     overlay.className = "overlay";
@@ -302,7 +300,6 @@ function showEventInput(overlay, date, day) {
     descriptionInput.placeholder = "Event description";
     inputGroup.appendChild(descriptionInput);
 
-    //<input type="time" id="appt" name="appt">
     const timePanel = document.createElement("div");
     timePanel.innerHTML = 'Start time: <input type="time" id="startTime"/> End time: <input type="time" id="endTime"/>';
     inputGroup.appendChild(timePanel);
@@ -311,7 +308,6 @@ function showEventInput(overlay, date, day) {
     addButton.textContent = "Add Event";
     addButton.addEventListener("click", () => {
         const text = descriptionInput.value.trim();
-        // const time = timeInput.value.trim();
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;        
         if (text) {
@@ -323,11 +319,11 @@ function showEventInput(overlay, date, day) {
 
             const apiUrl = `/events/add/${dateString}`;
             fetch(apiUrl, {
-                method: 'POST', // Specify the HTTP method
+                method: 'POST', 
                 headers: {
-                    'Content-Type': 'application/json', // Set the content type to JSON
+                    'Content-Type': 'application/json', 
                 },
-                body: JSON.stringify(eventItem), // Convert the eventDetails object to JSON
+                body: JSON.stringify(eventItem), 
             }).then(rs => populate() );                 
 
         }
@@ -395,11 +391,6 @@ function openEditItemOverlay(dateString, item) {
     overlay.appendChild(input);
 
     if (item.type === "event") {
-        // const timeInput = document.createElement("input");
-        // timeInput.placeholder = "HH:MM - HH:MM";
-        // timeInput.value = item.time || "";
-        // overlay.appendChild(timeInput);
-
         const timePanel = document.createElement("div");
         timePanel.innerHTML = `Start time: <input type="time" value="${item.startTime}" id="startTime"/> End time: <input type="time" value="${item.endTime}" id="endTime"/>`;
         overlay.appendChild(timePanel);
@@ -414,11 +405,11 @@ function openEditItemOverlay(dateString, item) {
             item.endTime = endTime;
             const apiUrl = `/events/update`;
             fetch(apiUrl, {
-                method: 'POST', // Specify the HTTP method
+                method: 'POST', 
                 headers: {
-                    'Content-Type': 'application/json', // Set the content type to JSON
+                    'Content-Type': 'application/json', 
                 },
-                body: JSON.stringify(item), // Convert the eventDetails object to JSON
+                body: JSON.stringify(item), 
             }).then(rs => populate() );                 
             overlay.remove();
         });
@@ -431,11 +422,11 @@ function openEditItemOverlay(dateString, item) {
             renderCalendar(currentDate);
             const apiUrl = `/tasks/update`;
             fetch(apiUrl, {
-                method: 'POST', // Specify the HTTP method
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json', // Set the content type to JSON
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(item), // Convert the eventDetails object to JSON
+                body: JSON.stringify(item), 
             }).then(rs => populate() );   
             overlay.remove();
         });
@@ -472,5 +463,4 @@ document.getElementById("nextMonth").addEventListener("click", () => {
     renderCalendar(currentDate);
 });
 
-// Initial Render
 populate();    
